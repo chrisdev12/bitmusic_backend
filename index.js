@@ -6,7 +6,7 @@ const port = 3000;
 /**
  * Conexión a la base de datos
  */
-mongoose.connect('mongodb://localhost:27017/bictiaMusic' ,
+mongoose.connect('mongodb://localhost:27017/bictMusic' ,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
