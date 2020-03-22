@@ -37,7 +37,23 @@ let music = {
         } catch (error) {
             console.log(error)
         }
+    },
+    getSongs: function(req, res){
+        Song.find().exec((err, songs) => {
+            if(err || !songs) {
+                return res.status(400).send({
+                    statusCode: 400,
+                    status : 'error',
+                    message: 'No hay canciones existentes'
+                });
+            }
+            return res.status(200).send({
+                statusCode: 200,
+                status: 'success',
+                songs: songs
+            });
+        });
     }
 }
 
-module.exports = music
+module.exports = music;
