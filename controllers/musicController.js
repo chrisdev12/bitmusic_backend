@@ -70,7 +70,58 @@ let music = {
                 song: songFound
             });
         })
-    }
+    },
+    findByName: function (req, res) {
+        
+        let name = req.body.name
+        Song.find({ 'name' : name }).exec((err, coincidences) => {
+            if (err) {
+                return res.status(500).send({
+                    message: `Error en el servidor: ${err}`,
+                    statusCode: 500
+                })
+            } else if (coincidences.length === 0) {
+                return res.status(400).send({
+                    message: 'No se encontraron canciones con ese nombre',
+                    statusCode: 400
+                })
+            } else {
+                return res.status(200).send({
+                    statusCode: 200,
+                    status: 'success',
+                        songs: coincidences
+                    })
+            }       
+        })
+    },
+    typeHead: function (req, res) {
+        
+        let name = req.body.name
+        Song.find({
+            'name': {
+                "$regex": `${name}`,
+                "$options": "i"
+            }
+        }).exec((err, coincidences) => {
+            if (err) {
+                return res.status(500).send({
+                    message: `Error en el servidor: ${err}`,
+                    statusCode: 500
+                })
+            } else if (coincidences.length === 0) {
+                return res.status(400).send({
+                    message: 'No se encontraron canciones con ese nombre',
+                    statusCode: 400
+                })
+            } else {
+                return res.status(200).send({
+                    statusCode: 200,
+                    status: 'success',
+                    songs: coincidences
+                })
+            }
+        })
+    }     
 }
 
 module.exports = music;
