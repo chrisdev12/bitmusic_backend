@@ -50,9 +50,26 @@ let music = {
             return res.status(200).send({
                 statusCode: 200,
                 status: 'success',
-                songs: songs
+                music: songs
             });
         });
+    },
+    findById: function (req, res) {
+        
+        let id = req.body.id
+        Song.findById(id, (err, songFound) => {
+            if (err || !songFound) {
+                return res.status(400).send({
+                    message: 'La canción no existe o fue eliminada de la BD',
+                    statusCode: 400
+                })
+            }  
+            return res.status(200).send({
+                statusCode: 200,
+                status: 'success',
+                song: songFound
+            });
+        })
     }
 }
 
