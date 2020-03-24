@@ -53,6 +53,40 @@ let music = {
                 songs: songs
             });
         });
+    },
+    getSongsBypaginate: function(req,res){
+        if(!req.params.page || req.params.page == '0' || req.params.page == 0 || req.params.page == undefined){
+            var page = 1; 
+        } else {
+            var page = parseInt(req.params.page);
+        }
+        var options = {
+            sort: {date: -1},
+            limit: 6,
+            page: page
+        };
+        Song.paginate({}, options, (err, songs) => {
+            if(err) {
+                return res.status(500).send({
+                    statusCode: 500,
+                    status: 'error',
+                    message: "Error al consultar"
+                });
+            }
+            if(!songs) {
+                return res.status(400).send({
+                    statusCode: 400,
+                    status: 'error',
+                    message: 'No existen canciones'
+                });
+            }
+            return res.status(200).send({
+                statusCode: 200,
+                status: songs.docs,
+                totalDocs: songs.totalDocs,
+                totalPages: songs.totalPages
+            });
+        });
     }
 }
 

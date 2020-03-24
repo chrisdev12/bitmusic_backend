@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 let Schema = mongoose.Schema;
 
@@ -41,5 +42,8 @@ let song = new Schema({
         required: [true, 'audio file is required']
     }
 })
+song.plugin(mongoosePaginate);
+
+
 
 module.exports = mongoose.model('song', song);
