@@ -1,49 +1,74 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-//**
-//Campos los cuales tendra la base de datos
-//
+const uniqueValidator = require('mongoose-unique-validator');
+
+/*
+* @unique: Validate that the username and email are not repeated.
+* @enum: Only allow the entry/post of pre-established roles in
+* allowRoles.values
+* Note: Role is set by default as USER, no one should be able 
+* to inject any other kind of role from the frontend
+*/
+
+const allowRoles = {
+    values: ['USER'] ,
+    message: '{VALUE} no es un rol válido'
+}
+
 let user = new Schema({
 
     firstName: {
         type: String,
-        required: [true, 'firstName is required']
+        required: [true, 'First name is required']
     },
     lastName: {
         type: String,
-        required: [true, 'lastName is required']
-    },
-    phone: {
-        type: String,
-        required: [true, 'phone is required']
+        required: [true, 'Last name is required']
     },
     email: {
         type: String,
-        required: [true, 'email is required']
-    },
-    userName: {
-        type: String,
-        required: [true, 'userName is required']
+        unique: true,
+        required: [true, 'Email is required']
     },
     password: {
         type: String,
-        required: [false, 'password is required']
+        required: [true, 'Password is required']
+    },
+    role:{
+        type: String,
+        default: 'USER',
+        enum: allowRoles
     },
     picture: {
         type: String,
-        required: [true, 'picture is required']
+        required:  false
     },
-    rol:{
-        type: String,
-        required: [true, 'rol is required']
+    phone: {
+        type: Number,
+        required: false
     },
-    favoriteList: {
-        type: String,
-        required: [true, 'favoriteList is required']
+    favoriteSongs: {
+        type: Array,
+        required: false
     }
-
 });
 
-//Se exporta este modulo con el nombre que recibio en la parte superior
+/*
+* @methods.toJSON = This method is always used for mongoose
+* when is trying to print a response. Here is used to avoid a security issue:
+* Don't return the password in the server response if the user was successfull 
+* created
+*/
+
+user.methods.toJSON = function () {
+    let user = this;
+    let userValidation = user.toObject();
+    
+    //delete the password of the response (res.send)
+    delete userValidation.password
+    return userValidation
+}
+
+user.plugin(uniqueValidator, { message: '{PATH} is already registered, try with another one'})
 
 module.exports = mongoose.model('user', user);

@@ -1,7 +1,8 @@
 const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
+const bcrypt = require('bcrypt');
 
-let users = {
-
+let user = {
+    
     create: function (req, res) {
         //Funcion para crear el usuario
         try {
@@ -10,32 +11,34 @@ let users = {
             let newUser = new User({
                 firstName: body.firstName,
                 lastName: body.lastName,
-                phone: body.phone,
                 email: body.email,
-                userName: body.userName,
-                password: body.password,
+                password: bcrypt.hashSync(body.password,10), 
+                role: body.role,
                 picture: body.picture,
-                rol: body.rol,
-                favoriteList: body.favoriteList
+                phone: body.phone,
+                favoriteSongs: body.favoriteList
             })
 
             newUser.save((err, userDB) => {
                 if (err) {
-                    res.status(400).send({
+                    return res.send({
                         statusCode: 400,
                         ok: false,
-                        err: 'Error al agregar el usuario' + err
+                        err: `Error al agregar el usuario:  ${err}`
                     })
-                } else {
-                    res.status(200).send({
-                        statusCode: 200,
-                        ok: true,
-                        created: userDB
-                    })
-                }
+                } 
+                
+                return res.send({
+                    statusCode: 200,
+                    ok: true,
+                    user: userDB
+                })          
             })
         } catch (error) {
-            console.log(error)
+            res.send({
+                ok: false,
+                error: error
+            })
         }
     },
 
@@ -44,8 +47,12 @@ let users = {
         var params = req.body;
         var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
+        if (params.password) {
+            bcrypt.hashSync(params.password,10)
+        }
+        
         //Respuesta segun lo que se encuntre 
-        User.findByIdAndUpdate(id, params, (error, userUpdated) => {
+        User.findByIdAndUpdate(id, params, { new: true}, (error, userUpdated) => {
             if (error) {
                 res.send({
                     message: 'Error en el servidor',
@@ -66,12 +73,50 @@ let users = {
                 }
             }
         })
-
-
-
-
+    },
+    
+    //Funcion para validar loging de usuarios
+    login: function (req, res) {
+        
+        let body = req.body;
+        User.findOne({ email: body.email },
+            (error, userLogged) => {
+                if (error) {
+                    res.send({
+                        message: 'Error en el servidor',
+                        statusCode: 500
+                    })
+                }
+                
+                if (!userLogged) {
+                    res.send({
+                        menssage: 'El usuario no existe',
+                        statusCode: 400
+                    })
+                } else {
+                    bcrypt.compare(body.password, userLogged.password,
+                        (err, check) => {
+                            //Si es correcto,
+                            if (check) {
+                                // Devolver los datos
+                                return res.send({
+                                    menssage: 'Usuario logueado',
+                                    statusCode: 200,
+                                    user: userLogged
+                                });
+                            } else {
+                                return res.send({
+                                    message: 'Los datos no son correctos',
+                                    statusCode: 401
+                                })
+                            }
+                        }
+                    )
+                }
+            }
+        )
     }
 }
 
 //Exportamos lo que contiene la funcion en este caso users
-module.exports = users
+module.exports = user
