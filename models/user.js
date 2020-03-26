@@ -1,33 +1,30 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-//**
-//Campos los cuales tendra la base de datos
-//
-let user = new Schema({
+const mongoose =require('mongoose');
+const Schema=mongoose.Schema;
 
-    firstName: {
-        type: String,
-        required: [true, 'firstName is required']
+//variable del objeto usuario
+//atribustos del usuario
+
+let user=new Schema({
+    firstName:{
+     type:String,
+     required:[true,'userFirname is required']
     },
-    lastName: {
-        type: String,
-        required: [true, 'lastName is required']
+    lastName:{
+        type:String,
+        required:[true,'lastName is required']
     },
-    phone: {
-        type: String,
-        required: [true, 'phone is required']
+    email:{
+        type:String,
+        required:[true,'email is required']
     },
-    email: {
-        type: String,
-        required: [true, 'email is required']
+    userName:{
+        type:String,
+        requires:[true,'userName is required']
+
     },
-    userName: {
-        type: String,
-        required: [true, 'userName is required']
-    },
-    password: {
-        type: String,
-        required: [false, 'password is required']
+    password:{
+        type:String,
+        required:[true,'password is required']
     },
     picture: {
         type: String,
@@ -44,6 +41,5 @@ let user = new Schema({
 
 });
 
-//Se exporta este modulo con el nombre que recibio en la parte superior
 
 module.exports = mongoose.model('user', user);

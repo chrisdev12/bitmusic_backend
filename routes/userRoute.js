@@ -1,8 +1,8 @@
 const express = require('express')
 const user = require('../controllers/userController')
-const app = express();
+const app = express.Router;
 
-//Ruta en la cual accederemos a crear el usuario
-app.post('/user/create', user.create)
+app.post('/user/create', user.create);//Crear ususario
+console.log("entramos")
 
-module.exports = app;
+module.exports = app;//exportacion de todos los modulos
