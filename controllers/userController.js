@@ -1,14 +1,14 @@
 const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
 
 let users = {
-    
+
     create: function (req, res) {
         //Funcion para crear el usuario
         try {
             let body = req.body
             //Usamos los campos del modelo
             let newUser = new User({
-                firstName:  body.firstName,
+                firstName: body.firstName,
                 lastName: body.lastName,
                 phone: body.phone,
                 email: body.email,
@@ -18,7 +18,7 @@ let users = {
                 rol: body.rol,
                 favoriteList: body.favoriteList
             })
-            
+
             newUser.save((err, userDB) => {
                 if (err) {
                     res.status(400).send({
@@ -31,12 +31,43 @@ let users = {
                         statusCode: 200,
                         ok: true,
                         created: userDB
-                    }) 
-                }    
+                    })
+                }
             })
         } catch (error) {
             console.log(error)
         }
+    },
+
+    update: function (req, res) {
+        var params = req.body;
+        var id = req.params.id;
+        
+        User.findByIdAndUpdate(id, params, (error, userUpdated) => {
+            if (error) {
+                res.send({
+                    message: 'Error en el servidor',
+                    statusCode: 500
+                })
+            } else {
+                if (!userUpdated) {
+                    res.send({
+                        message: 'Error al actualizar el usuario',
+                        statusCode: 400
+                    })
+                } else {
+                    res.send({
+                        message: 'Usuario actualizado',
+                        statusCode: 200,
+                        dataUser: userUpdated
+                    })
+                }
+            }
+        })
+
+
+
+
     }
 }
 
