@@ -5,7 +5,7 @@ const userRoute = require('./routes/userRoute');
 const app = express();
 
 app.use(bodyParser.json());
-app.use('/api',musicRoute); //Rutas relacionadas con la música
-app.use('/api',userRoute); //Rutas relacionada para el usuario
+app.use('/api/music',musicRoute); //Rutas relacionadas con la música
+app.use('/api/user',userRoute); //Rutas relacionada para el usuario
 
 module.exports = app;

@@ -1,6 +1,7 @@
 const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
+const bcrypt = require('bcrypt');
 
-let users = {
+let user = {
     
     create: function (req, res) {
         //Funcion para crear el usuario
@@ -10,35 +11,38 @@ let users = {
             let newUser = new User({
                 firstName:  body.firstName,
                 lastName: body.lastName,
-                phone: body.phone,
                 email: body.email,
-                userName: body.userName,
-                password: body.password,
+                username: body.username,
+                password: bcrypt.hashSync(body.password,10), 
+                role: body.role,
                 picture: body.picture,
-                rol: body.rol,
-                favoriteList: body.favoriteList
+                phone: body.phone,
+                favoriteSongs: body.favoriteList
             })
             
             newUser.save((err, userDB) => {
                 if (err) {
-                    res.status(400).send({
+                    return res.send({
                         statusCode: 400,
                         ok: false,
-                        err: 'Error al agregar el usuario' + err
+                        err: `Error al agregar el usuario:  ${err}`
                     })
-                } else {
-                    res.status(200).send({
-                        statusCode: 200,
-                        ok: true,
-                        created: userDB
-                    }) 
-                }    
+                } 
+                
+                return res.send({
+                    statusCode: 200,
+                    ok: true,
+                    user: userDB
+                })          
             })
         } catch (error) {
-            console.log(error)
+            res.send({
+                ok: false,
+                error: error
+            })
         }
     }
 }
 
 //Exportamos lo que contiene la funcion en este caso users
-module.exports = users
+module.exports = user
