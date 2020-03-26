@@ -39,10 +39,12 @@ let users = {
         }
     },
 
+    //Funcion para actualizar el usuario
     update: function (req, res) {
         var params = req.body;
-        var id = req.params.id;
+        var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
+        //Respuesta segun lo que se encuntre 
         User.findByIdAndUpdate(id, params, (error, userUpdated) => {
             if (error) {
                 res.send({
