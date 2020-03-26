@@ -48,7 +48,7 @@ let user = {
         var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
         if (params.password) {
-            bcrypt.hashSync(params.password,10)
+            params.password = bcrypt.hashSync(params.password,10)
         }
         
         //Respuesta segun lo que se encuntre 
