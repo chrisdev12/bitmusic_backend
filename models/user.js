@@ -10,7 +10,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 * to inject any other kind of role from the frontend
 */
 
-let allowRoles = {
+const allowRoles = {
     values: ['USER'] ,
     message: '{VALUE} no es un rol válido'
 }
@@ -30,11 +30,6 @@ let user = new Schema({
         unique: true,
         required: [true, 'Email is required']
     },
-    username: {
-        type: String,
-        unique: true,
-        required: [true, 'username is required']
-    },
     password: {
         type: String,
         required: [true, 'Password is required']
@@ -53,7 +48,7 @@ let user = new Schema({
         required: false
     },
     favoriteSongs: {
-        type: String,
+        type: Array,
         required: false
     }
 });
