@@ -47,11 +47,19 @@ let user = {
         var params = req.body;
         var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
+<<<<<<< HEAD
+        //Encriptar de nuevo la contraseña en caso de que se requiera
+        if (params.password) {
+            params.password = bcrypt.hashSync(params.password,10)
+        }
+        
+=======
         if (params.password) {
             bcrypt.hashSync(params.password,10)
         }
         
         //Respuesta segun lo que se encuntre 
+>>>>>>> d7c40cef758cae08cdca8a5104d1c4ce0c797f80
         User.findByIdAndUpdate(id, params, { new: true}, (error, userUpdated) => {
             if (error) {
                 res.send({
