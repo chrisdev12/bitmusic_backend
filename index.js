@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const port = 3000;
 
-
+mongoose.set('useCreateIndex', true);
 /**
  * Conexión a la base de datos
  */

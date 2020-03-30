@@ -1,5 +1,8 @@
 const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path')
+const publicUserImg = path.join(__dirname,'../assets/img/users')
 
 let user = {
     
@@ -14,7 +17,7 @@ let user = {
                 email: body.email,
                 password: bcrypt.hashSync(body.password,10), 
                 role: body.role,
-                picture: body.picture,
+                image: body.image,
                 phone: body.phone,
                 favoriteSongs: body.favoriteList
             })
@@ -31,7 +34,7 @@ let user = {
                 return res.send({
                     statusCode: 200,
                     ok: true,
-                    user: userDB
+                    dataUser: userDB
                 })          
             })
         } catch (error) {
@@ -52,10 +55,10 @@ let user = {
         }
         
         //Respuesta segun lo que se encuntre 
-        User.findByIdAndUpdate(id, params, { new: true}, (error, userUpdated) => {
-            if (error) {
+        User.findByIdAndUpdate(id, params, { new:true }, (err, userUpdated) => {
+            if (err) {
                 res.send({
-                    message: 'Error en el servidor',
+                    message: 'Error en el servidor a la hora de guardar la imagen',
                     statusCode: 500
                 })
             } else {
@@ -82,14 +85,14 @@ let user = {
         User.findOne({ email: body.email },
             (error, userLogged) => {
                 if (error) {
-                    res.send({
+                    return res.send({
                         message: 'Error en el servidor',
                         statusCode: 500
                     })
                 }
                 
                 if (!userLogged) {
-                    res.send({
+                    return res.send({
                         menssage: 'El usuario no existe',
                         statusCode: 400
                     })
@@ -102,7 +105,7 @@ let user = {
                                 return res.send({
                                     menssage: 'Usuario logueado',
                                     statusCode: 200,
-                                    user: userLogged
+                                    dataUser: userLogged
                                 });
                             } else {
                                 return res.send({
@@ -115,6 +118,55 @@ let user = {
                 }
             }
         )
+    },
+    saveImg: function (req, res) {
+        
+        let id = req.params.id;
+        if (req.files) {
+            let imgName = req.files.image.path.split('//');
+            console.log('image1:',imgName);
+           
+            if (imgName.length === 1) {
+                imgName = req.files.image.path.split('/')[0];
+                console.log('image2:',imgName);
+            }
+            
+            User.findByIdAndUpdate(id, { image: imgName },(err, userAndimgUpdated) => {
+                if (err) {
+                    return res.send({
+                        statusCode: 500,
+                        ok: false,
+                        message: 'Sever error'
+                    })
+                }
+                
+                if (userAndimgUpdated) {
+                    return res.send({
+                        statusCode: 200,
+                        ok: true,
+                        dataUser: userAndimgUpdated,
+                        img: imgName
+                    })
+                } else {
+                    return res.send({
+                        statusCode: 401,
+                        ok: false,
+                        message: 'User not found'
+                    }) 
+                }           
+            })
+        } else {
+            return res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'Sever error || Any file was upload'
+            })
+        }
+    },
+    showImg: function (req, res) {
+        let url = req.params.url
+        console.log(`${publicUserImg}${url}`)
+        res.sendFile(`${publicUserImg}//${url}`)
     }
 }
 
