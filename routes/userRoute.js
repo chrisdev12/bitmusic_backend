@@ -10,6 +10,6 @@ app.post('/create', user.create)
 app.put('/update/:id', user.update)
 app.post('/login', user.login)
 app.put('/saveImg/:id', imgDir, user.saveImg)
-app.get('/showImg/:url', user.showImg)
+app.get('/showImg/:img', user.showImg)
 
 module.exports = app;

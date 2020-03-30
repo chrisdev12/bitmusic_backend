@@ -123,15 +123,10 @@ let user = {
         
         let id = req.params.id;
         if (req.files) {
-            let imgName = req.files.image.path.split('//');
-            console.log('image1:',imgName);
-           
-            if (imgName.length === 1) {
-                imgName = req.files.image.path.split('/')[0];
-                console.log('image2:',imgName);
-            }
-            
-            User.findByIdAndUpdate(id, { image: imgName },(err, userAndimgUpdated) => {
+            let img = req.files.image.path;
+            let imgName = req.files.image.path.split('\\')[3]
+                
+            User.findByIdAndUpdate(id, { image: img},(err, userAndimgUpdated) => {
                 if (err) {
                     return res.send({
                         statusCode: 500,
@@ -164,9 +159,19 @@ let user = {
         }
     },
     showImg: function (req, res) {
-        let url = req.params.url
-        console.log(`${publicUserImg}${url}`)
-        res.sendFile(`${publicUserImg}//${url}`)
+        let img = req.params.img
+        
+        let nameImage = img === 'undefined' ? 'withoutImage.png' : img;
+        let imageRoute = `${publicUserImg}//${nameImage}`;
+        fs.exists(imageRoute, (exists) => {
+            if (exists) {
+                res.sendFile(`${publicUserImg}//${nameImage}`)
+            } else {
+                res.send({
+                    statusCode: 400
+                })
+            }
+        })
     }
 }
 
