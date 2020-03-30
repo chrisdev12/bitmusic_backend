@@ -2,7 +2,6 @@ const User = require('../models/user');  //Importamos el modelo con el cual inte
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path')
-const publicUserImg = path.join(__dirname,'../assets/img/users')
 
 let user = {
     
@@ -122,56 +121,48 @@ let user = {
     saveImg: function (req, res) {
         
         let id = req.params.id;
-        if (req.files) {
-            let img = req.files.image.path;
-            let imgName = req.files.image.path.split('\\')[3]
-                
-            User.findByIdAndUpdate(id, { image: img }, (err, userAndimgUpdated) => {
-                if (err) {
-                    return res.send({
-                        statusCode: 500,
-                        ok: false,
-                        message: 'Sever error'
-                    })
-                }
-                
-                if (userAndimgUpdated) {
-                    return res.send({
-                        statusCode: 200,
-                        ok: true,
-                        dataUser: userAndimgUpdated,
-                        img: imgName
-                    })
-                } else {
-                    return res.send({
-                        statusCode: 401,
-                        ok: false,
-                        message: 'User not found'
-                    })
-                }
-            })
-        } else {
-            return res.send({
-                statusCode: 400,
-                ok: false,
-                message: 'Sever error || Any file was upload'
-            })
-        }
-    },
-    showImg: function (req, res) {
-        let img = req.params.img
         
-        let nameImage = img === 'undefined' ? 'withoutImage.png' : img;
-        let imageRoute = `${publicUserImg}//${nameImage}`;
-        fs.exists(imageRoute, (exists) => {
-            if (exists) {
-                res.sendFile(`${publicUserImg}//${nameImage}`)
+        let img = req.files.image.path;
+    
+        User.findByIdAndUpdate(id, { image: img }, {new: true}, (err, userAndimgUpdated) => {
+            if (err) {
+                return res.send({
+                    statusCode: 500,
+                    ok: false,
+                    message: 'Sever error al agregar imagen'
+                })
+            }
+            
+            if (userAndimgUpdated) {
+                userAndimgUpdated.image = userAndimgUpdated.image.split('\\')[3]
+                return res.send({
+                    statusCode: 200,
+                    ok: true,
+                    dataUser: userAndimgUpdated
+                })
             } else {
-                res.send({
-                    statusCode: 400
+                return res.send({
+                    statusCode: 401,
+                    ok: false,
+                    message: 'User not found'
                 })
             }
         })
+         
+    },
+    showImg: function (req, res) {
+        let img = req.params.img
+        let nameImage = img === 'undefined' ? '404.png' : img;
+        let imageRoute = `./assets/img/users/${nameImage}`;
+        if (fs.existsSync((imageRoute))){
+            res.sendFile(path.resolve(imageRoute));
+        } else {
+            res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'No se encontro la imagen'
+            });
+        }
     },
     changePassword: function(req, res){
         let id = req.params.id;
