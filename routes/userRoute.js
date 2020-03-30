@@ -7,9 +7,11 @@ let imgDir = multipart({ uploadDir: './assets/img/users' });
 app.post('/create', user.create)
 
 //Ruta en la cual podremos acceder al metodo de actualizar
-app.put('/update/:id', user.update)
 app.post('/login', user.login)
+app.put('/update/:id', user.update)
 app.put('/saveImg/:id', imgDir, user.saveImg)
+app.put('/updatePw/:id', user.changePassword)
 app.get('/showImg/:img', user.showImg)
+
 
 module.exports = app;

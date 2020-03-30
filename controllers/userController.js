@@ -15,7 +15,7 @@ let user = {
                 firstName: body.firstName,
                 lastName: body.lastName,
                 email: body.email,
-                password: bcrypt.hashSync(body.password,10), 
+                password: bcrypt.hashSync(body.password, 10),
                 role: body.role,
                 image: body.image,
                 phone: body.phone,
@@ -29,13 +29,13 @@ let user = {
                         ok: false,
                         err: `Error al agregar el usuario:  ${err}`
                     })
-                } 
+                }
                 
                 return res.send({
                     statusCode: 200,
                     ok: true,
                     dataUser: userDB
-                })          
+                })
             })
         } catch (error) {
             res.send({
@@ -51,11 +51,11 @@ let user = {
         var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
         if (params.password) {
-            params.password = bcrypt.hashSync(params.password,10)
+            params.password = bcrypt.hashSync(params.password, 10)
         }
         
         //Respuesta segun lo que se encuntre 
-        User.findByIdAndUpdate(id, params, { new:true }, (err, userUpdated) => {
+        User.findByIdAndUpdate(id, params, { new: true }, (err, userUpdated) => {
             if (err) {
                 res.send({
                     message: 'Error en el servidor a la hora de guardar la imagen',
@@ -126,7 +126,7 @@ let user = {
             let img = req.files.image.path;
             let imgName = req.files.image.path.split('\\')[3]
                 
-            User.findByIdAndUpdate(id, { image: img},(err, userAndimgUpdated) => {
+            User.findByIdAndUpdate(id, { image: img }, (err, userAndimgUpdated) => {
                 if (err) {
                     return res.send({
                         statusCode: 500,
@@ -147,8 +147,8 @@ let user = {
                         statusCode: 401,
                         ok: false,
                         message: 'User not found'
-                    }) 
-                }           
+                    })
+                }
             })
         } else {
             return res.send({
@@ -172,6 +172,32 @@ let user = {
                 })
             }
         })
+    },
+    changePassword: function(req, res){
+        let id = req.params.id;
+        let password = bcrypt.hashSync(req.body.password, 10);
+        
+        User.findByIdAndUpdate(id, { password: password }, (err, pwUpdated) => {
+             
+            if (err) {
+                return res.send({
+                    statusCode: 500,
+                    message: 'Server error'
+                })
+            }
+            if (!pwUpdated) {
+                return res.send({
+                    statusCode: 401,
+                    message: 'Ningún usuario encontrado'
+                })
+            } else {
+                return res.send({
+                    statusCode: 200,
+                    message: 'contraseña actualizada'
+                })
+            }
+         })
+        
     }
 }
 
