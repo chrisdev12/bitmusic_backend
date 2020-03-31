@@ -38,7 +38,7 @@ let user = new Schema({
         required: [true, 'rol is required']
     },
     favoriteList: {
-        type: String,
+        type: [],
         required: [true, 'favoriteList is required']
     }
 

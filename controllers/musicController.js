@@ -95,7 +95,6 @@ let music = {
         })
     },
     typeHead: function (req, res) {
-        
         let name = req.body.name
         Song.find({
             'name': {
