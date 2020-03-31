@@ -39,7 +39,7 @@ let user = new Schema({
         default: 'USER',
         enum: allowRoles
     },
-    picture: {
+    image: {
         type: String,
         required:  false
     },

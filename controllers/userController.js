@@ -1,5 +1,7 @@
 const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path')
 
 let user = {
     
@@ -12,9 +14,9 @@ let user = {
                 firstName: body.firstName,
                 lastName: body.lastName,
                 email: body.email,
-                password: bcrypt.hashSync(body.password,10), 
+                password: bcrypt.hashSync(body.password, 10),
                 role: body.role,
-                picture: body.picture,
+                image: body.image,
                 phone: body.phone,
                 favoriteSongs: body.favoriteList
             })
@@ -26,13 +28,13 @@ let user = {
                         ok: false,
                         err: `Error al agregar el usuario:  ${err}`
                     })
-                } 
+                }
                 
                 return res.send({
                     statusCode: 200,
                     ok: true,
-                    user: userDB
-                })          
+                    dataUser: userDB
+                })
             })
         } catch (error) {
             res.send({
@@ -48,14 +50,14 @@ let user = {
         var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
         if (params.password) {
-            params.password = bcrypt.hashSync(params.password,10)
+            params.password = bcrypt.hashSync(params.password, 10)
         }
         
         //Respuesta segun lo que se encuntre 
-        User.findByIdAndUpdate(id, params, { new: true}, (error, userUpdated) => {
-            if (error) {
+        User.findByIdAndUpdate(id, params, { new: true }, (err, userUpdated) => {
+            if (err) {
                 res.send({
-                    message: 'Error en el servidor',
+                    message: 'Error en el servidor a la hora de guardar la imagen',
                     statusCode: 500
                 })
             } else {
@@ -82,14 +84,14 @@ let user = {
         User.findOne({ email: body.email },
             (error, userLogged) => {
                 if (error) {
-                    res.send({
+                    return res.send({
                         message: 'Error en el servidor',
                         statusCode: 500
                     })
                 }
                 
                 if (!userLogged) {
-                    res.send({
+                    return res.send({
                         menssage: 'El usuario no existe',
                         statusCode: 400
                     })
@@ -102,7 +104,7 @@ let user = {
                                 return res.send({
                                     menssage: 'Usuario logueado',
                                     statusCode: 200,
-                                    user: userLogged
+                                    dataUser: userLogged
                                 });
                             } else {
                                 return res.send({
@@ -115,6 +117,78 @@ let user = {
                 }
             }
         )
+    },
+    saveImg: function (req, res) {
+        
+        let id = req.params.id;
+        
+        let img = req.files.image.path;
+    
+        User.findByIdAndUpdate(id, { image: img }, {new: true}, (err, userAndimgUpdated) => {
+            if (err) {
+                return res.send({
+                    statusCode: 500,
+                    ok: false,
+                    message: 'Sever error al agregar imagen'
+                })
+            }
+            
+            if (userAndimgUpdated) {
+                userAndimgUpdated.image = userAndimgUpdated.image.split('\\')[3]
+                return res.send({
+                    statusCode: 200,
+                    ok: true,
+                    dataUser: userAndimgUpdated
+                })
+            } else {
+                return res.send({
+                    statusCode: 401,
+                    ok: false,
+                    message: 'User not found'
+                })
+            }
+        })
+         
+    },
+    showImg: function (req, res) {
+        let img = req.params.img
+        let nameImage = img === 'undefined' ? '404.png' : img;
+        let imageRoute = `./assets/img/users/${nameImage}`;
+        if (fs.existsSync((imageRoute))){
+            res.sendFile(path.resolve(imageRoute));
+        } else {
+            res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'No se encontro la imagen'
+            });
+        }
+    },
+    changePassword: function(req, res){
+        let id = req.params.id;
+        let password = bcrypt.hashSync(req.body.password, 10);
+        
+        User.findByIdAndUpdate(id, { password: password }, (err, pwUpdated) => {
+             
+            if (err) {
+                return res.send({
+                    statusCode: 500,
+                    message: 'Server error'
+                })
+            }
+            if (!pwUpdated) {
+                return res.send({
+                    statusCode: 401,
+                    message: 'Ningún usuario encontrado'
+                })
+            } else {
+                return res.send({
+                    statusCode: 200,
+                    message: 'contraseña actualizada'
+                })
+            }
+         })
+        
     }
 }
 
