@@ -19,7 +19,7 @@ let song = new Schema({
     },
     urlImage: {
         type: String,
-        required: [true, 'ImageUrl of the song is required']
+        default: '404.png',
     },
     discName: {
         type: String,
@@ -27,7 +27,7 @@ let song = new Schema({
     },
     composer: {
         type: String,
-        required: [false, 'composer is required']
+        required: false
     },
     createAt: {
         type: Date,
@@ -35,15 +35,29 @@ let song = new Schema({
     },
     createdBy:{
         type: String,
-        required: [true, 'Admin user is required']
     },
     audio: {
         type: String,
-        required: [true, 'audio file is required']
+        required: [true, 'Audio file is required']
     }
 })
 song.plugin(mongoosePaginate);
 
-
+// song.methods.toJSON = function () {
+//     let song = this;
+//     let songParser = song.toObject();
+    
+//     if (songParser.urlImage !== undefined) {
+//         console.log('entrando a imagen')
+//         songParser.urlImage = songParser.urlImage.split('\\')[3]
+//     }
+    
+//     if (songParser.audio !== undefined) {
+//         console.log('entrando a audio')
+//         songParser.audio = songParser.audio.split('\\')[2]
+//     }
+//     console.log(songParser)
+//     return songParser;
+// }
 
 module.exports = mongoose.model('song', song);
