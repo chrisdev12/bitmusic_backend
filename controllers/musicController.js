@@ -226,7 +226,7 @@ let music = {
     },
     typeHead: function (req, res) {
         
-        let name = req.body.name
+        let name = req.query.name
         Song.find({
             'name': {
                 "$regex": `${name}`,
