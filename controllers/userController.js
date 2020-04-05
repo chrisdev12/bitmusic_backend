@@ -1,4 +1,5 @@
-const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
+const User = require('../models/user');//Importamos el modelo con el cual interactuaremos 
+const Song = require('../models/music'); //Importamos el modelo de las canciones para listar las canciones favoritas
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path')
@@ -239,6 +240,41 @@ let user = {
                             user
                         });
                     });
+            })
+        });
+    },
+    listFavoriteSong: function(req, res){
+        let userId = req.params.userId
+        User.findById(userId, (err, user)=> {
+            if(err){
+                return res.send({
+                    statusCode: 500,
+                    message: 'Error en el servidor'
+                })
+            }
+            if(!user){
+                return res.send({
+                    statusCode: 400,
+                    message: 'El usuario no existe'
+                })
+            }
+            Song.populate(user, {path: "favoriteSongs"},  (err, user)=>{
+                if(err){
+                    return res.send({
+                        statusCode: 500,
+                        message: 'Error en el servidor'
+                    })
+                }
+                if(!user){
+                    return res.send({
+                        statusCode: 400,
+                        message: 'El usuario no existe'
+                    })
+                }
+                return res.send({
+                    statusCode: 200,
+                    user
+                })
             })
         })
     }
