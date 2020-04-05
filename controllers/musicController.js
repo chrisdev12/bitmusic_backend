@@ -1,3 +1,5 @@
+'use strict'
+
 const Song = require('../models/music');
 
 let music = {
@@ -202,7 +204,7 @@ let music = {
         })
     },
     findByName: function (req, res) {
-        
+
         let name = req.body.name
         Song.find({ 'name' : name }).exec((err, coincidences) => {
             if (err) {
