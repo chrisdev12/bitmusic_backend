@@ -1,5 +1,3 @@
-'use strict'
-
 const Song = require('../models/music');
 
 let music = {
@@ -201,11 +199,11 @@ let music = {
                 status: 'success',
                 song: songFound
             });
-        })
+        });
     },
     findByName: function (req, res) {
 
-        let name = req.body.name
+        let name = req.body.name;
         Song.find({ 'name' : name }).exec((err, coincidences) => {
             if (err) {
                 return res.status(500).send({

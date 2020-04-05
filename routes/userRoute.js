@@ -12,6 +12,7 @@ app.put('/update/:id', user.update)
 app.put('/saveImg/:id', imgDir, user.saveImg)
 app.put('/updatePw/:id', user.changePassword)
 app.get('/showImg/:img', user.showImg)
+app.put('/:userId/', user.addSong)
 
 
 module.exports = app;
