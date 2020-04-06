@@ -324,6 +324,30 @@ let music = {
                 message: 'No se encontro la imagen'
             });
         }
+    },
+    deleteSong: function(req, res){
+        let songId = req.params.songId;
+
+        Song.findByIdAndDelete(songId, (err, songDeleted)=> {
+            if(err){
+                return res.send({
+                    statusCode: 500,
+                    message: 'Error en el servidor'
+                });
+            }
+            if(!songDeleted){
+                return res.send({
+                    statusCode: 400,
+                    message: 'Error al eliminar la canción'
+                });
+            }
+
+            return res.send({
+                statusCode: 200,
+                message: 'Canción eliminada correctamente',
+                song: songDeleted
+            });
+        });
     }
 }
 

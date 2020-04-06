@@ -182,12 +182,12 @@ let user = {
                 return res.send({
                     statusCode: 401,
                     message: 'Ningún usuario encontrado'
-                })
+                });
             } else {
                 return res.send({
                     statusCode: 200,
                     message: 'contraseña actualizada'
-                })
+                });
             }
          });
         
