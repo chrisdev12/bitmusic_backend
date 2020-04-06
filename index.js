@@ -1,24 +1,23 @@
+require ('./config/config') //Requerir variables de entorno : Process.env.urlDb y process.env.PORT
 const mongoose = require('mongoose');
 const app = require('./app');
-const port = 3000;
 
-mongoose.set('useCreateIndex', true);
 mongoose.set('useFindAndModify', false);
-/**
- * Conexión a la base de datos
- */
-mongoose.connect('mongodb://localhost:27017/bictiaMusic' ,
+
+// Conexión a la base de datos
+mongoose.connect(process.env.urlDB,
     {
         useNewUrlParser: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
+        useCreateIndex: true
     },
-    (error, res) => {
-       if(error){
-           console.log("Error de conexión con BD" + error);
+    (err, res) => {
+       if(err){
+           console.log("Err de conexión con BD" + err);
        } else {
            console.log("Conexión exitosa a la base de datos");
-           app.listen(port, () => {
-               console.log("Escuchando en el puerto", port);
+           app.listen(process.env.PORT, () => {
+               console.log("Escuchando en el puerto", process.env.PORT);
            });
        }
 });
