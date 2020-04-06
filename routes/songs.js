@@ -20,4 +20,5 @@ app.get('/typehead', music.typeHead);
 app.get('/:page?', music.getSongsBypaginate);
 app.get('/audio/:file', music.getAudioFile);
 app.get('/image/:image', music.getImageFile);
+app.delete('/delete/:songId', music.deleteSong);
 module.exports = app;
