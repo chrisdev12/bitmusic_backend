@@ -1,4 +1,6 @@
 const Song = require('../models/music');
+const fs = require('fs');
+const path = require('path')
 
 let music = {
     
@@ -53,7 +55,15 @@ let music = {
         
         // A diferencias de otros request, como este fue enviado desde el front dentro de un formData, debemos primero usar JSON.parse
         // Usaremos nuestro Schema apra agregrar la nueva canción
-            let body = JSON.parse(req.body.body)
+            let body 
+            if (req.body) { //Via postman
+                body = req.body
+            }
+            
+            if (req.body.body) { //Via angular
+                body = JSON.parse(req.body.body)
+            }
+            
             let newSong = new Song({
                 name:  body.name,
                 genre: body.genre,
@@ -252,7 +262,8 @@ let music = {
             }
         })
     },     
-    getSongsBypaginate: function(req,res){
+    getSongsBypaginate: function (req, res) {
+        
         if(!req.params.page || req.params.page == '0' || req.params.page == 0 || req.params.page == undefined){
             var page = 1; 
         } else {
@@ -285,6 +296,34 @@ let music = {
                 totalPages: songs.totalPages
             });
         });
+    },
+    getAudioFile: function (req, res) {
+        
+        let song = req.params.file
+        let songRoute = `./assets/music/${song}`;
+        if (fs.existsSync((songRoute))){
+            res.sendFile(path.resolve(songRoute));
+        } else {
+            res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'No se encontro la canción'
+            });
+        }
+    },
+    getImageFile: function (req, res) {
+        
+        let image = req.params.image
+        let imageRoute = `./assets/img/songs/${image}`;
+        if (fs.existsSync((imageRoute))){
+            res.sendFile(path.resolve(imageRoute));
+        } else {
+            res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'No se encontro la imagen'
+            });
+        }
     }
 }
 

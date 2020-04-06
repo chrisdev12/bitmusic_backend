@@ -9,7 +9,7 @@ const songAudioDir = multipart({ uploadDir: './assets/music' });
 /**
  * @Create: Agregar datos de texto a la canción. /Create usa el middleware the fileUpload
  * @Create/update/audio/ Actualizar archivo de audio de la canción.
- * @Create/update/image/ Actualizar imagen identificadora de la canción.
+ * @Create/update/image/  Actualizar imagen identificadora de la canción.
  */
 
 app.use('/create',fileUpload());
@@ -21,5 +21,6 @@ app.get('/id', music.findById);
 app.get('/name', music.findByName);
 app.get('/typehead', music.typeHead);
 app.get('/:page?', music.getSongsBypaginate);
-
+app.get('/audio/:file', music.getAudioFile);
+app.get('/image/:image', music.getImageFile);
 module.exports = app;
