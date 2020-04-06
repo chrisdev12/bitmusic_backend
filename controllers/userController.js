@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path')
 const mongoose = require('mongoose');
-
+const _= require('underscore') //Validar que campos son los que dejaremos actualizar en cada Endpoint
 let user = {
     
     create: function (req, res) {
@@ -48,19 +48,20 @@ let user = {
 
     //Funcion para actualizar el usuario
     update: function (req, res) {
-        var params = req.body;
-        var id = req.params.id; //Importante el id, el cual utilizaremos para actualizar el usuario
         
-        if (params.password) {
-            params.password = bcrypt.hashSync(params.password, 10)
-        }
-        
+        let camposAutorizados = ['firstName','lastName','phone','image']
+        //Permitir solo que se actualizen los campos autorizados. 
+        //lo demás lo eliminara usando delete al objeto req.body
+        let params = _.pick(req.body, camposAutorizados); 
+        let id = req.params.id; 
+                
         //Respuesta segun lo que se encuntre 
-        User.findByIdAndUpdate(id, params, { new: true }, (err, userUpdated) => {
+        User.findByIdAndUpdate(id, params, { new: true, runValidators: true }, (err, userUpdated) => {
             if (err) {
                 res.send({
-                    message: 'Error en el servidor a la hora de guardar la imagen',
-                    statusCode: 500
+                    message: 'Error en el servidor',
+                    statusCode: 500,
+                    err
                 })
             } else {
                 if (!userUpdated) {
@@ -126,7 +127,7 @@ let user = {
         
         let img = req.files.image.path;
     
-        User.findByIdAndUpdate(id, { image: img }, {new: true}, (err, userAndimgUpdated) => {
+        User.findByIdAndUpdate(id, { image: img }, {new: true, runValidators: true }, (err, userAndimgUpdated) => {
             if (err) {
                 return res.send({
                     statusCode: 500,
