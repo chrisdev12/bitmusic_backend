@@ -1,7 +1,9 @@
-const User = require('../models/user');  //Importamos el modelo con el cual interactuaremos 
+const User = require('../models/user');//Importamos el modelo con el cual interactuaremos 
+const Song = require('../models/music'); //Importamos el modelo de las canciones para listar las canciones favoritas
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path')
+const mongoose = require('mongoose');
 
 let user = {
     
@@ -187,8 +189,94 @@ let user = {
                     message: 'contraseña actualizada'
                 })
             }
-         })
+         });
         
+    },
+    addSong: function(req,res){
+        let userId = req.params.userId;
+        let songId = mongoose.Types.ObjectId(req.body.songId);
+        User.findById(userId).exec((err, user)=> {
+            if(err){
+                return res.send({
+                    statusCode: 500,
+                    message: 'Error en el servidor'
+                });
+            }
+            if(!user){
+                return res.send({
+                    statusCode: 400,
+                    message: 'No existe el usuario'
+                });
+            }
+            
+            let newFavoriteList = [];
+            newFavoriteList = user.favoriteSongs;
+            newFavoriteList.push(songId);
+            
+            User.findByIdAndUpdate(userId, {favoriteSongs: newFavoriteList}, (err)=> {
+                if(err){
+                    return res.send({
+                        statusCode: 500,
+                        message: 'Error al realizar petición',
+                        error: err
+                    });
+                }
+                User.findById(userId)
+                    .exec((err, user)=>{
+                        if (err) {
+                            return res.send({
+                                status: 500,
+                                message: 'Error en la peticón'
+                            });
+                        }
+                        if (!user) {
+                            return res.send({
+                                message: 'No existe el usuario'
+                            });
+                        }
+                        // Devolver el resultado
+                        return res.send({
+                            status: 200,
+                            user
+                        });
+                    });
+            })
+        });
+    },
+    listFavoriteSong: function(req, res){
+        let userId = req.params.userId
+        User.findById(userId, (err, user)=> {
+            if(err){
+                return res.send({
+                    statusCode: 500,
+                    message: 'Error en el servidor'
+                })
+            }
+            if(!user){
+                return res.send({
+                    statusCode: 400,
+                    message: 'El usuario no existe'
+                })
+            }
+            Song.populate(user, {path: "favoriteSongs"},  (err, user)=>{
+                if(err){
+                    return res.send({
+                        statusCode: 500,
+                        message: 'Error en el servidor'
+                    })
+                }
+                if(!user){
+                    return res.send({
+                        statusCode: 400,
+                        message: 'El usuario no existe'
+                    })
+                }
+                return res.send({
+                    statusCode: 200,
+                    user
+                })
+            })
+        })
     }
 }
 

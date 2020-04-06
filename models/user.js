@@ -47,10 +47,10 @@ let user = new Schema({
         type: Number,
         required: false
     },
-    favoriteSongs: {
-        type: Array,
-        required: false
-    }
+    favoriteSongs: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'song'
+    }]
 });
 
 /*
