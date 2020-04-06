@@ -1,6 +1,7 @@
 const Song = require('../models/music');
 const fs = require('fs');
 const path = require('path')
+const _ = require('underscore') //Validar que campos son los que dejaremos actualizar en cada Endpoint
 
 let music = {
     
@@ -53,53 +54,124 @@ let music = {
             return `${randomName}.${ext}`
         }
         
-        // A diferencias de otros request, como este fue enviado desde el front dentro de un formData, debemos primero usar JSON.parse
+        /**
+         *  A diferencias de otros request, como este fue enviado desde el front dentro de un formData
+         * , debemos usar una validación para usarlo mediante un JSON.parse. Sin embargo, en caso de que llege en una petición por ejemplo
+         *  desde Postman, tambíen haremos una validación para que se registre de forma correcta
+         */
+        
+        let body = req.body || JSON.parse(req.body.body)
+            
         // Usaremos nuestro Schema apra agregrar la nueva canción
-            let body 
-            if (req.body) { //Via postman
-                body = req.body
-            }
-            
-            if (req.body.body) { //Via angular
-                body = JSON.parse(req.body.body)
-            }
-            
-            let newSong = new Song({
-                name:  body.name,
-                genre: body.genre,
-                artist: body.artist,
-                discName: body.discName,
-                composer: body.composer,
-                createAt: body.createAt,
-                createdBy: body.createdBy,
-                audio: audioName,
-                urlImage: imageName,
-            })
-            
-            newSong.save((err, songDB) => {
-                if (err) {
-                    res.status(400).send({
-                        statusCode: 400,
-                        ok: false,
-                        message: 'Error al agregar nueva canción' + err
-                    })
-                } else {
-                    
-                    // Si todo ha salido bien usaremos .mv() para mover archivos a los folders deseados. Y validamos si necesitamos guardar
-                    // algo para imagen o usamos 404 en su defecto
-                    if (image) {
-                        image.mv(`./assets/img/songs/${imageName}`, function (err) {
-                            if (err) {
-                            return res.send({
-                                    statusCode: 500,
-                                    ok: false,
-                                    message: 'Error en los archivos de imagen-canción'
-                                });
-                            }
-                        });  
+        let newSong = new Song({
+            name:  body.name,
+            genre: body.genre,
+            artist: body.artist,
+            discName: body.discName,
+            composer: body.composer,
+            createAt: body.createAt,
+            createdBy: body.createdBy,
+            audio: audioName,
+            urlImage: imageName,
+        })
+        
+        newSong.save((err, songDB) => {
+            if (err) {
+                res.status(400).send({
+                    statusCode: 400,
+                    ok: false,
+                    message: 'Error al agregar nueva canción' + err
+                })
+            } else {
+                
+                // Si todo ha salido bien usaremos .mv() para mover archivos a los folders deseados. Y validamos si necesitamos guardar
+                // algo para imagen o usamos 404 en su defecto
+                if (image) {
+                    image.mv(`./assets/img/songs/${imageName}`, function (err) {
+                        if (err) {
+                        return res.send({
+                                statusCode: 500,
+                                ok: false,
+                                message: 'Error en los archivos de imagen-canción'
+                            });
+                        }
+                    });  
+                }
+
+                audio.mv(`./assets/music/${audioName}`, function (err) {
+                    if (err) {
+                        return res.send({
+                            statusCode: 500,
+                            ok: false,
+                            message: 'Error en los archivos de audio'
+                        });
                     }
- 
-                    audio.mv(`./assets/music/${audioName}`, function (err) {
+                });
+                
+                res.status(200).send({
+                    statusCode: 200,
+                    ok: true,
+                    message: songDB
+                }) 
+            }    
+        })
+    
+    }, 
+    update: function (req, res) {
+        
+        let id = req.params.id;
+        let params = req.body || JSON.parse(req.body.body)
+        let image
+        let audio
+        
+        //Validar si vienen archivos
+        if (req.files) {
+            
+            if (req.files.image) {
+                image = req.files.image
+                params.urlImage = encryptName(req.files.image.name);
+            }
+            
+            if (req.files.audio) {
+                audio = req.files.audio
+                params.audio = encryptName(req.files.audio.name);
+            }
+        }
+        
+        function encryptName(filename) {
+            // Recuperar extensión del archivo
+            let name = filename.split('.').shift()
+            let ext = filename.split('.').pop()
+            //Aleatorización nombre y concatenarle la extensión que traía   
+            let random = Math.random();
+            let randomName = random + name + new Date().getMilliseconds()
+            return `${randomName}.${ext}`
+        }
+        
+        Song.findByIdAndUpdate(id, params, { new: true }, (err, audioUpdated) => {
+            if (err) {
+                return res.send({
+                    statusCode: 500,
+                    ok: false,
+                    message: 'Sever error al actualizar canción'
+                })
+            }
+        
+            if (audioUpdated) {
+                
+                if (image) {
+                    image.mv(`./assets/img/songs/${params.urlImage}`, function (err) {
+                        if (err) {
+                            return res.send({
+                                statusCode: 500,
+                                ok: false,
+                                message: 'Error en los archivos de imagen-canción'
+                            });
+                        }
+                    });
+                }    
+                if (audio) {
+                    audio.mv(`./assets/music/${params.audio}`, function (err) {
                         if (err) {
                             return res.send({
                                 statusCode: 500,
@@ -108,32 +180,7 @@ let music = {
                             });
                         }
                     });
-                    
-                    res.status(200).send({
-                        statusCode: 200,
-                        ok: true,
-                        message: songDB
-                    }) 
-                }    
-            })
-       
-    },
-    
-    updateAudio: function (req, res) {
-        
-        let id = req.params.id;
-        let audio = req.files.image.path;
-        
-        Song.findByIdAndUpdate(id, { audio: audio }, { new: true }, (err, audioUpdated) => {
-            if (err) {
-                return res.send({
-                    statusCode: 500,
-                    ok: false,
-                    message: 'Sever error al agregar imagen'
-                })
-            }
-        
-            if (audioUpdated) {
+                }   
                 return res.send({
                     statusCode: 200,
                     ok: true,
@@ -143,40 +190,10 @@ let music = {
                 return res.send({
                     statusCode: 401,
                     ok: false,
-                    message: 'User not found'
+                    message: 'Song not found'
                 })
             }
-        })
-        
-    },
-    
-    updateImage: function (req, res) {
-        let id = req.params.id;
-        let img = req.files.image.path;
-        
-        Song.findByIdAndUpdate(id, { urlImage: img }, { new: true }, (err, imgUpdated) => {
-            if (err) {
-                return res.send({
-                    statusCode: 500,
-                    ok: false,
-                    message: 'Sever error al agregar imagen'
-                })
-            }
-        
-            if (imgUpdated) {
-                return res.send({
-                    statusCode: 200,
-                    ok: true,
-                    dataUser: imgUpdated
-                })
-            } else {
-                return res.send({
-                    statusCode: 401,
-                    ok: false,
-                    message: 'User not found'
-                })
-            }
-        })
+        })      
     },
     getSongs: function(req, res){
         Song.find().exec((err, songs) => {

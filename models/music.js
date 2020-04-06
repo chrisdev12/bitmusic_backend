@@ -43,21 +43,4 @@ let song = new Schema({
 })
 song.plugin(mongoosePaginate);
 
-// song.methods.toJSON = function () {
-//     let song = this;
-//     let songParser = song.toObject();
-    
-//     if (songParser.urlImage !== undefined) {
-//         console.log('entrando a imagen')
-//         songParser.urlImage = songParser.urlImage.split('\\')[3]
-//     }
-    
-//     if (songParser.audio !== undefined) {
-//         console.log('entrando a audio')
-//         songParser.audio = songParser.audio.split('\\')[2]
-//     }
-//     console.log(songParser)
-//     return songParser;
-// }
-
 module.exports = mongoose.model('song', song);

@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path')
 const mongoose = require('mongoose');
 const _= require('underscore') //Validar que campos son los que dejaremos actualizar en cada Endpoint
+
 let user = {
     
     create: function (req, res) {
