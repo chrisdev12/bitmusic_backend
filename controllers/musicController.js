@@ -6,61 +6,10 @@ const _ = require('underscore') //Validar que campos son los que dejaremos actua
 let music = {
     
     create: function (req, res) {
-        
-        /**
-        * fileUpload() está como middleware de todo lo que entre por /create- Por lo cual primeros haremos la recuperación
-        * de los archivos. Validaremos cúales vienen (audio es requerido, mientras imagen no) y luego usaremos el modelo para
-        * la anueva canción a la base de datos, y si todo sale bien guardaremos los archivos en su respectivo directorio.
-        * Nota: El middleware nos "parseara" o devolvera 3 cosas: 2 archivos y un JSON con el nombre body.
-        */
-        
-        if (!req.files || Object.keys(req.files).length === 0) {
-            return res.send({
-                statusCode: 400,
-                ok: false,
-                message: 'Ningún archivo fue seleccionado/enviado'
-            });
-        }
-        
-        // Nombre enviado en el req / Usado para recuperar el archivoy nombre con el que se guardara
-        let image = req.files.image
-        let audio = req.files.audio
-        let audioName
-        let imageName
-        
-        if(req.files.audio)
-        
-        if (audio) {
-            audioName = encryptName(req.files.audio.name);   
-        } else {
-            return res.send({
-                statusCode: 400,
-                ok: false,
-                message: 'No se selecciono ningúna archivo de audio. Se necesita una para crear la canción'
-            });
-        }
-        
-        if (image) {
-            imageName = encryptName(req.files.image.name);   
-        }
-    
-        function encryptName(filename) {
-            // Recuperar extensión del archivo
-            let name = filename.split('.').shift()
-            let ext = filename.split('.').pop()
-            //Aleatorización nombre y concatenarle la extensión que traía   
-            let random = Math.random();
-            let randomName = random + name + new Date().getMilliseconds()
-            return `${randomName}.${ext}`
-        }
-        
-        /**
-         *  A diferencias de otros request, como este fue enviado desde el front dentro de un formData
-         * , debemos usar una validación para usarlo mediante un JSON.parse. Sin embargo, en caso de que llege en una petición por ejemplo
-         *  desde Postman, tambíen haremos una validación para que se registre de forma correcta
-         */
-        
-        let body = req.body || JSON.parse(req.body.body)
+            
+        let body = req.body;
+        let audio = req.files.audio;
+        let image = req.files.image;
             
         // Usaremos nuestro Schema apra agregrar la nueva canción
         let newSong = new Song({
@@ -71,8 +20,8 @@ let music = {
             composer: body.composer,
             createAt: body.createAt,
             createdBy: body.createdBy,
-            audio: audioName,
-            urlImage: imageName,
+            audio: body.audio,
+            urlImage: body.urlImage,
         })
         
         newSong.save((err, songDB) => {
@@ -87,9 +36,9 @@ let music = {
                 // Si todo ha salido bien usaremos .mv() para mover archivos a los folders deseados. Y validamos si necesitamos guardar
                 // algo para imagen o usamos 404 en su defecto
                 if (image) {
-                    image.mv(`./assets/img/songs/${imageName}`, function (err) {
+                    image.mv(`./assets/img/songs/${body.urlImage}`, function (err) {
                         if (err) {
-                        return res.send({
+                            return res.send({
                                 statusCode: 500,
                                 ok: false,
                                 message: 'Error en los archivos de imagen-canción'
@@ -98,7 +47,7 @@ let music = {
                     });  
                 }
 
-                audio.mv(`./assets/music/${audioName}`, function (err) {
+                audio.mv(`./assets/music/${body.audio}`, function (err) {
                     if (err) {
                         return res.send({
                             statusCode: 500,
@@ -120,35 +69,15 @@ let music = {
     update: function (req, res) {
         
         let id = req.params.id;
-        let params = req.body || JSON.parse(req.body.body)
-        let image
+        let params = req.body;
         let audio
+        let image
         
-        //Validar si vienen archivos
         if (req.files) {
-            
-            if (req.files.image) {
-                image = req.files.image
-                params.urlImage = encryptName(req.files.image.name);
-            }
-            
-            if (req.files.audio) {
-                audio = req.files.audio
-                params.audio = encryptName(req.files.audio.name);
-            }
+            audio = req.files.audio;
+            image = req.files.image; 
         }
-        
-        function encryptName(filename) {
-            // Recuperar extensión del archivo
-            let name = filename.split('.').shift()
-            let ext = filename.split('.').pop()
-            //Aleatorización nombre y concatenarle la extensión que traía   
-            let random = Math.random();
-            let randomName = random + name + new Date().getMilliseconds()
-            return `${randomName}.${ext}`
-        }
-        
-        Song.findByIdAndUpdate(id, params, { new: true }, (err, audioUpdated) => {
+        Song.findByIdAndUpdate(id, params, { new: true }, (err, songUpdated) => {
             if (err) {
                 return res.send({
                     statusCode: 500,
@@ -157,7 +86,7 @@ let music = {
                 })
             }
         
-            if (audioUpdated) {
+            if (songUpdated) {
                 
                 if (image) {
                     image.mv(`./assets/img/songs/${params.urlImage}`, function (err) {
@@ -165,7 +94,7 @@ let music = {
                             return res.send({
                                 statusCode: 500,
                                 ok: false,
-                                message: 'Error en los archivos de imagen-canción'
+                                message: 'Error en la subida de archivos de imagen-canción'
                             });
                         }
                     });
@@ -176,7 +105,7 @@ let music = {
                             return res.send({
                                 statusCode: 500,
                                 ok: false,
-                                message: 'Error en los archivos de audio'
+                                message: 'Error en la subida de archivos de audio'
                             });
                         }
                     });
@@ -184,7 +113,7 @@ let music = {
                 return res.send({
                     statusCode: 200,
                     ok: true,
-                    dataUser: audioUpdated
+                    song: songUpdated
                 })
             } else {
                 return res.send({

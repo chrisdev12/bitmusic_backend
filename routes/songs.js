@@ -2,23 +2,25 @@ const express = require('express')
 const music = require('../controllers/musicController')
 const app = express();
 const fileUpload = require('express-fileupload');
+const token = require('../middlewares/authToken')
+const fileValidate = require('../middlewares/fileValidation')
 
 /**
- * @Create: Agregar datos de texto a la canción. /Create usa el middleware the fileUpload
- * @Create/update/audio/ Actualizar archivo de audio de la canción.
- * @Create/update/image/  Actualizar imagen identificadora de la canción.
+ * @Create y @update usan el middleware the fileUpload() para obtener de forma sencilla los archivos.
+ * @Create usa fileValidate.new para randomizar los nombres y enviar de forma sencilla todos los campos para agregar al modelo en el req.body
+ * @token es un middleware con dos métodos: validation y adminValidation. Validation se genera sobre todos los endpoints y admin
+ * solo sobre los que necesitan permisos de admin para ejecutarse.
+ * @Create y @update usan token.admin
  */
 
-app.use('/create', fileUpload());
-app.use('/update',fileUpload());
-app.post('/create', music.create);
-app.put('/update/:id', music.update);
-app.get('/', music.getSongs);
-app.get('/id', music.findById);
-app.get('/name', music.findByName);
-app.get('/typehead', music.typeHead);
-app.get('/:page?', music.getSongsBypaginate);
-app.get('/audio/:file', music.getAudioFile);
-app.get('/image/:image', music.getImageFile);
-app.delete('/delete/:songId', music.deleteSong);
+app.post('/create',[token.validation, token.adminValidation, fileUpload(), fileValidate.new], music.create);
+app.put('/update/:id',[token.validation, token.adminValidation, fileUpload(), fileValidate.update], music.update);
+app.get('/',token.validation, music.getSongs);
+app.get('/id', token.validation, music.findById);
+app.get('/name',token.validation, music.findByName);
+app.get('/typehead',token.validation, music.typeHead);
+app.get('/:page?',token.validation, music.getSongsBypaginate);
+app.get('/audio/:file',token.validation, music.getAudioFile);
+app.get('/image/:image',token.validation, music.getImageFile);
+app.delete('/delete/:songId',[token.validation, token.adminValidation], music.deleteSong);
 module.exports = app;

@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path')
 const mongoose = require('mongoose');
 const _= require('underscore') //Validar que campos son los que dejaremos actualizar en cada Endpoint
+const jwt = require('jsonwebtoken');
 
 let user = {
     
@@ -96,7 +97,7 @@ let user = {
                 
                 if (!userLogged) {
                     return res.send({
-                        menssage: 'El usuario no existe',
+                        menssage: 'Usuario o contraseña incorrectos',
                         statusCode: 400
                     })
                 } else {
@@ -104,15 +105,21 @@ let user = {
                         (err, check) => {
                             //Si es correcto,
                             if (check) {
+                                //Generar Token
+                                let token = jwt.sign({
+                                    user: userLogged
+                                },'secret-bictia',{ expiresIn: 60 * 60 * 24})
+                                
                                 // Devolver los datos
                                 return res.send({
                                     menssage: 'Usuario logueado',
                                     statusCode: 200,
-                                    dataUser: userLogged
+                                    dataUser: userLogged,
+                                    token: token
                                 });
                             } else {
                                 return res.send({
-                                    message: 'Los datos no son correctos',
+                                    message: 'Usuario o contraseña incorrectos',
                                     statusCode: 401
                                 })
                             }
