@@ -3,18 +3,18 @@ const music = require('../controllers/musicController')
 const app = express();
 const fileUpload = require('express-fileupload');
 const token = require('../middlewares/authToken')
+const fileValidate = require('../middlewares/fileValidation')
 
 /**
- * @Create y @update usa el middleware the fileUpload() para obtener de forma sencilla los File
+ * @Create y @update usan el middleware the fileUpload() para obtener de forma sencilla los archivos.
+ * @Create usa fileValidate.new para randomizar los nombres y enviar de forma sencilla todos los campos para agregar al modelo en el req.body
  * @token es un middleware con dos métodos: validation y adminValidation. Validation se genera sobre todos los endpoints y admin
- * solo sobre los que necesitan permisos de usuario para ejecutarse.
+ * solo sobre los que necesitan permisos de admin para ejecutarse.
  * @Create y @update usan token.admin
  */
 
-app.use('/create', fileUpload());
-app.use('/update',fileUpload());
-app.post('/create',[token.validation, token.adminValidation], music.create);
-app.put('/update/:id',[token.validation, token.adminValidation], music.update);
+app.post('/create',[token.validation, token.adminValidation, fileUpload(), fileValidate.new], music.create);
+app.put('/update/:id',[token.validation, token.adminValidation, fileUpload(), fileValidate.update], music.update);
 app.get('/',token.validation, music.getSongs);
 app.get('/id', token.validation, music.findById);
 app.get('/name',token.validation, music.findByName);
