@@ -50,6 +50,10 @@ let user = new Schema({
     favoriteSongs: [{
         type: mongoose.Schema.ObjectId,
         ref: 'song'
+    }],
+    uploadedSongs: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'privateSong'
     }]
 });
 

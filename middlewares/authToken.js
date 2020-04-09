@@ -13,6 +13,7 @@ let token = {
                 })
             }
             req.user = decoded.user; //User fue lo que codificamos cuando encriptamos y creamos el Token
+            req.body.id = req.user._id //obtener ID del usuario que hace la solicitud
             next();
         })
     },  

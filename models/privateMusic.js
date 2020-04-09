@@ -4,7 +4,7 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 let Schema = mongoose.Schema;
 
 
-let song = new Schema({
+let privateSong = new Schema({
     name: {
         type: String,
         required: [true, 'songName is required']
@@ -33,11 +33,15 @@ let song = new Schema({
         type: Date,
         required: [true, 'publish date is required']
     },
+    createdBy:{
+        type: String,
+        required: [true, 'Owner/User that is creating the song is required']
+    },
     audio: {
         type: String,
         required: [true, 'Audio file is required']
     }
 })
-song.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('song', song);
+privateSong.plugin(mongoosePaginate);
+module.exports = mongoose.model('privateSong', privateSong);

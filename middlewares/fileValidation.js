@@ -1,4 +1,5 @@
 const Song = require('../models/music');
+const PrivateSong = require('../models/privateMusic');
 const fs = require('fs');
 const imagePath = './assets/img/songs/';
 const audioPath = './assets/music/';
@@ -49,7 +50,7 @@ let file = {
         
             if (req.files) {
             
-                let id = req.params.id;
+                let id = req.params.songId;
                 //Buscar datos actuales de la canción: Queremos recuperar audio e imagen actual.
                 let oldFile = await Song.findById
                     (id, (err, song) => {
@@ -78,9 +79,67 @@ let file = {
                 message: 'Sever error al actualizar canción. Verifique que exista'
             })                
         }
+    },
+    
+    privateUpdate: async function (req, res, next) {
+        
+        //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
+        try {
+            req.body = req.body || JSON.parse(req.body.body)
+        
+            if (req.files) {
+            
+                let id = req.params.songId;
+                //Buscar datos actuales de la canción: Queremos recuperar audio e imagen actual.
+                let oldFile = await PrivateSong.findById
+                    (id, (err, song) => {
+                        if (song) {
+                            return song
+                        } 
+                    });
+            
+                //Validar cuales archivos vinieron y eliminar el archivo viejo en caso de que exista.
+                if (req.files.image) {
+                    trashOldFile(oldFile.urlImage,imagePath)
+                    req.body.urlImage = randomizeName(req.files.image.name);
+                }       
+                if (req.files.audio) {
+                    trashOldFile(oldFile.audio,audioPath)
+                    req.body.audio = randomizeName(req.files.audio.name);
+                }  
+            }
+
+            next()
+            
+        } catch (err) {           
+            return res.send({
+                statusCode: 500,
+                ok: false,
+                message: 'Sever error al actualizar canción. Verifique que exista'
+            })                
+        }
+    },
+    delete: function (req, res, next) {
+        let songId = req.params.songId;
+        PrivateSong.findById(songId,(err, oldFile) => {
+            if(err || !oldFile) {
+                return res.status(400).send({
+                    statusCode: 400,
+                    status : 'error',
+                    message: 'La canción que deseas eliminar no existe.'
+                });
+            }
+            
+            if (oldFile.urlImage) {              
+                trashOldFile(oldFile.urlImage,imagePath)
+            }       
+            if (oldFile.audio) {
+                trashOldFile(oldFile.audio,audioPath)
+            }
+            next();
+        });
     }
 }
-
 
 function trashOldFile(file,path) {
     if (fs.existsSync((`${path}${file}`))){

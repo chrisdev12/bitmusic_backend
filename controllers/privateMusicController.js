@@ -1,7 +1,6 @@
-const Song = require('../models/music');
-const fs = require('fs');
-const path = require('path')
-const _ = require('underscore') //Validar que campos son los que dejaremos actualizar en cada Endpoint
+const PrivateSong = require('../models/privateMusic');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 let music = {
     
@@ -10,20 +9,21 @@ let music = {
         let body = req.body;
         let audio = req.files.audio;
         let image = req.files.image;
-            
+        
         // Usaremos nuestro Schema apra agregrar la nueva canción
-        let newSong = new Song({
-            name:  body.name,
+        let newPrivSong = new PrivateSong({
+            name: body.name,
             genre: body.genre,
             artist: body.artist,
             discName: body.discName,
             composer: body.composer,
             createAt: body.createAt,
+            createdBy: body.id,
             audio: body.audio,
             urlImage: body.urlImage,
         })
         
-        newSong.save((err, songDB) => {
+        newPrivSong.save((err, songDB) => {
             if (err) {
                 res.status(400).send({
                     statusCode: 400,
@@ -32,8 +32,6 @@ let music = {
                 })
             } else {
                 
-                // Si todo ha salido bien usaremos .mv() para mover archivos a los folders deseados. Y validamos si necesitamos guardar
-                // algo para imagen o usamos 404 en su defecto
                 if (image) {
                     image.mv(`./assets/img/songs/${body.urlImage}`, function (err) {
                         if (err) {
@@ -43,7 +41,7 @@ let music = {
                                 message: 'Error en los archivos de imagen-canción'
                             });
                         }
-                    });  
+                    });
                 }
 
                 audio.mv(`./assets/music/${body.audio}`, function (err) {
@@ -56,15 +54,28 @@ let music = {
                     }
                 });
                 
-                res.status(200).send({
-                    statusCode: 200,
-                    ok: true,
-                    message: songDB
-                }) 
-            }    
+                let songId = mongoose.Types.ObjectId(songDB._id);
+                let uploadedSongs = req.body.user.uploadedSongs;
+                uploadedSongs.push(songId);
+                
+                User.findByIdAndUpdate(body.id, { uploadedSongs: uploadedSongs },{ new: true }, (err,user) => {
+                    if (err) {
+                        return res.send({
+                            statusCode: 500,
+                            error: err
+                        });
+                    }
+                    return res.send({
+                        status: 200,
+                        ok: true,
+                        user,
+                        songDB
+                    });
+                });
+            }
         })
+    },
     
-    }, 
     update: function (req, res) {
         
         let id = req.params.songId;
@@ -76,7 +87,7 @@ let music = {
             audio = req.files.audio;
             image = req.files.image; 
         }
-        Song.findByIdAndUpdate(id, params, { new: true }, (err, songUpdated) => {
+        PrivateSong.findByIdAndUpdate(id, params, { new: true }, (err, songUpdated) => {
             if (err) {
                 return res.send({
                     statusCode: 500,
@@ -124,7 +135,8 @@ let music = {
         })      
     },
     getSongs: function(req, res){
-        Song.find().exec((err, songs) => {
+        let owner = req.body.id
+        PrivateSong.find({ 'createdBy' : owner }).exec((err, songs) => {
             if(err || !songs) {
                 return res.status(400).send({
                     statusCode: 400,
@@ -139,27 +151,11 @@ let music = {
             });
         });
     },
-    findById: function (req, res) {
-        
-        let id = req.body.songId
-        Song.findById(id, (err, songFound) => {
-            if (err || !songFound) {
-                return res.status(400).send({
-                    message: 'La canción no existe o fue eliminada de la BD',
-                    statusCode: 400
-                })
-            }  
-            return res.status(200).send({
-                statusCode: 200,
-                status: 'success',
-                song: songFound
-            });
-        });
-    },
     findByName: function (req, res) {
-
+        
+        let owner = req.body.id
         let name = req.body.name;
-        Song.find({ 'name' : name }).exec((err, coincidences) => {
+        PrivateSong.find({ 'name' : name,'createdBy' : owner }).exec((err, coincidences) => {
             if (err) {
                 return res.status(500).send({
                     message: `Error en el servidor: ${err}`,
@@ -181,12 +177,14 @@ let music = {
     },
     typeHead: function (req, res) {
         
+        let owner = req.body.id
         let name = req.query.name
-        Song.find({
+        PrivateSong.find({
             'name': {
                 "$regex": `${name}`,
                 "$options": "i"
-            }
+            },
+            'createdBy' : owner
         }).exec((err, coincidences) => {
             if (err) {
                 return res.status(500).send({
@@ -219,7 +217,7 @@ let music = {
             limit: 6,
             page: page
         };
-        Song.paginate({}, options, (err, songs) => {
+        PrivateSong.paginate({}, options, (err, songs) => {
             if(err) {
                 return res.status(500).send({
                     statusCode: 500,
@@ -242,38 +240,10 @@ let music = {
             });
         });
     },
-    getAudioFile: function (req, res) {
-        
-        let song = req.params.file
-        let songRoute = `./assets/music/${song}`;
-        if (fs.existsSync((songRoute))){
-            res.sendFile(path.resolve(songRoute));
-        } else {
-            res.send({
-                statusCode: 400,
-                ok: false,
-                message: 'No se encontro la canción'
-            });
-        }
-    },
-    getImageFile: function (req, res) {
-        
-        let image = req.params.image
-        let imageRoute = `./assets/img/songs/${image}`;
-        if (fs.existsSync((imageRoute))){
-            res.sendFile(path.resolve(imageRoute));
-        } else {
-            res.send({
-                statusCode: 400,
-                ok: false,
-                message: 'No se encontro la imagen'
-            });
-        }
-    },
     deleteSong: function(req, res){
         let songId = req.params.songId;
 
-        Song.findByIdAndDelete(songId, (err, songDeleted)=> {
+        PrivateSong.findByIdAndDelete(songId, (err, songDeleted)=> {
             if(err){
                 return res.send({
                     statusCode: 500,
@@ -286,13 +256,25 @@ let music = {
                     message: 'Error al eliminar la canción'
                 });
             }
+            
+            let newList = req.body.user.uploadedSongs.filter( song => song != songId); //Eliminar canción de la lista de subidas
 
-            return res.send({
-                statusCode: 200,
-                message: 'Canción eliminada correctamente',
-                song: songDeleted
+            User.findByIdAndUpdate(req.body.id, { uploadedSongs: newList }, { new: true }, (err,user) => {
+                if (err) {
+                    return res.send({
+                        statusCode: 500,
+                        error: err
+                    });
+                }
+                return res.send({
+                    status: 200,
+                    ok: true,
+                    message: 'Canción eliminada correctamente',
+                    user
+                });
             });
         });
+        
     }
 }
 
