@@ -22,6 +22,6 @@ app.get('/typehead',token.validation, music.typeHead);
 app.get('/:page?',token.validation, music.getSongsBypaginate);
 app.get('/audio/:file',token.validation, music.getAudioFile);
 app.get('/image/:image',token.validation, music.getImageFile);
-app.delete('/delete/:songId', [token.validation, token.adminValidation], music.deleteSong);
+app.delete('/delete/:songId', [token.validation, token.adminValidation, fileValidate.delete], music.deleteSong);
 
 module.exports = app;

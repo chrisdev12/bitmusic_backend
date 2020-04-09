@@ -14,7 +14,7 @@ const userValidate = require('../middlewares/userValidation');
 */
 
 app.post('/create', [token.validation, userValidate.exist, fileUpload(), fileValidate.new], privateMusic.create)
-app.put('/update/:songId', [token.validation, userValidate.exist, userValidate.owner, fileUpload(), fileValidate.privateUpdate], privateMusic.update);
+app.put('/update/:songId', [token.validation, userValidate.exist, userValidate.owner, fileUpload(), fileValidate.update], privateMusic.update);
 app.get('/',token.validation, privateMusic.getSongs);
 app.get('/name',token.validation, privateMusic.findByName);
 app.get('/typehead',token.validation, privateMusic.typeHead);

@@ -21,6 +21,7 @@ let token = {
         let role = req.user.role
         
         if (role === 'ADMIN') {
+            req.auth = 'BICTIA'
             next();
         } else {
             return res.send({

@@ -44,44 +44,12 @@ let file = {
     },
     update: async function (req, res, next) {
         
-        //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
-        try {
-            req.body = req.body || JSON.parse(req.body.body)
-        
-            if (req.files) {
-            
-                let id = req.params.songId;
-                //Buscar datos actuales de la canción: Queremos recuperar audio e imagen actual.
-                let oldFile = await Song.findById
-                    (id, (err, song) => {
-                        if (song) {
-                            return song
-                        } 
-                    });
-            
-                //Validar cuales archivos vinieron y eliminar el archivo viejo en caso de que exista.
-                if (req.files.image) {
-                    trashOldFile(oldFile.urlImage,imagePath)
-                    req.body.urlImage = randomizeName(req.files.image.name);
-                }       
-                if (req.files.audio) {
-                    trashOldFile(oldFile.audio,audioPath)
-                    req.body.audio = randomizeName(req.files.audio.name);
-                }  
-            }
-
-            next()
-            
-        } catch (err) {           
-            return res.send({
-                statusCode: 500,
-                ok: false,
-                message: 'Sever error al actualizar canción. Verifique que exista'
-            })                
-        }
-    },
-    
-    privateUpdate: async function (req, res, next) {
+        let Schema
+        if (req.auth === 'BICTIA') { //Req.auto solo es definido si el token viene con el rol de admin.
+            Schema = Song;
+        } else {
+           Schema = PrivateSong 
+        }  
         
         //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
         try {
@@ -91,7 +59,7 @@ let file = {
             
                 let id = req.params.songId;
                 //Buscar datos actuales de la canción: Queremos recuperar audio e imagen actual.
-                let oldFile = await PrivateSong.findById
+                let oldFile = await Schema.findById
                     (id, (err, song) => {
                         if (song) {
                             return song
@@ -120,8 +88,16 @@ let file = {
         }
     },
     delete: function (req, res, next) {
+        
+        let Schema
+        if (req.auth === 'BICTIA') { //Req.auto solo es definido si el token viene con el rol de admin.
+            Schema = Song;
+        } else {
+           Schema = PrivateSong 
+        }
+       
         let songId = req.params.songId;
-        PrivateSong.findById(songId,(err, oldFile) => {
+        Schema.findById(songId,(err, oldFile) => {
             if(err || !oldFile) {
                 return res.status(400).send({
                     statusCode: 400,
