@@ -132,10 +132,10 @@ let user = {
     saveImg: function (req, res) {
         
         let id = req.params.id;
-        
-        let img = req.files.image.path;
+        let image = req.files.image;
+        let imgName = req.body.image;
     
-        User.findByIdAndUpdate(id, { image: img }, {new: true, runValidators: true }, (err, userAndimgUpdated) => {
+        User.findByIdAndUpdate(id, { image: imgName }, {new: true, runValidators: true }, (err, imgUpdated) => {
             if (err) {
                 return res.send({
                     statusCode: 500,
@@ -144,12 +144,22 @@ let user = {
                 })
             }
             
-            if (userAndimgUpdated) {
-                userAndimgUpdated.image = userAndimgUpdated.image.split('\\')[3]
+            if (imgUpdated) {
+                
+                image.mv(`./assets/img/users/${imgName}`, function (err) {
+                    if (err) {
+                        return res.send({
+                            statusCode: 500,
+                            ok: false,
+                            message: 'Error en los archivos de imagen-canción'
+                        });
+                    }
+                });
+               
                 return res.send({
                     statusCode: 200,
                     ok: true,
-                    dataUser: userAndimgUpdated
+                    dataUser: imgUpdated
                 })
             } else {
                 return res.send({

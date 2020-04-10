@@ -1,7 +1,9 @@
 const Song = require('../models/music');
+const PrivateSong = require('../models/privateMusic');
 const fs = require('fs');
 const imagePath = './assets/img/songs/';
 const audioPath = './assets/music/';
+const userImgPath = './assets/img/users/';
 
 let file = {  
     
@@ -43,15 +45,22 @@ let file = {
     },
     update: async function (req, res, next) {
         
+        let Schema
+        if (req.auth === 'BICTIA') { //Req.auto solo es definido si el token viene con el rol de admin.
+            Schema = Song;
+        } else {
+           Schema = PrivateSong 
+        }  
+        
         //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
         try {
             req.body = req.body || JSON.parse(req.body.body)
         
             if (req.files) {
             
-                let id = req.params.id;
+                let id = req.params.songId;
                 //Buscar datos actuales de la canción: Queremos recuperar audio e imagen actual.
-                let oldFile = await Song.findById
+                let oldFile = await Schema.findById
                     (id, (err, song) => {
                         if (song) {
                             return song
@@ -78,9 +87,55 @@ let file = {
                 message: 'Sever error al actualizar canción. Verifique que exista'
             })                
         }
+    },
+    delete: function (req, res, next) {
+        
+        let Schema
+        if (req.auth === 'BICTIA') { //Req.auto solo es definido si el token viene con el rol de admin.
+            Schema = Song;
+        } else {
+           Schema = PrivateSong 
+        }
+       
+        let songId = req.params.songId;
+        Schema.findById(songId,(err, oldFile) => {
+            if(err || !oldFile) {
+                return res.status(400).send({
+                    statusCode: 400,
+                    status : 'error',
+                    message: 'La canción que deseas eliminar no existe.'
+                });
+            }
+            
+            if (oldFile.urlImage) {              
+                trashOldFile(oldFile.urlImage,imagePath)
+            }       
+            if (oldFile.audio) {
+                trashOldFile(oldFile.audio,audioPath)
+            }
+            next();
+        });
+    },
+    imageUpdate: function (req, res, next) {
+    
+        if(!req.files || Object.keys(req.files).length === 0) {
+            return res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'Ningún archivo fue seleccionado/enviado'
+            });
+        } 
+            
+        let currImg = req.body.user.image
+           
+        if (currImg) {
+            trashOldFile(currImg,userImgPath)
+            req.body.image = randomizeName(req.files.image.name);
+        }
+        
+        next()
     }
 }
-
 
 function trashOldFile(file,path) {
     if (fs.existsSync((`${path}${file}`))){

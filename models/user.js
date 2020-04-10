@@ -41,7 +41,7 @@ let user = new Schema({
     },
     image: {
         type: String,
-        required:  false
+        default: '404.png'
     },
     phone: {
         type: Number,
@@ -50,6 +50,10 @@ let user = new Schema({
     favoriteSongs: [{
         type: mongoose.Schema.ObjectId,
         ref: 'song'
+    }],
+    uploadedSongs: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'privateSong'
     }]
 });
 
