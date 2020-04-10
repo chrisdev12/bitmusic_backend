@@ -3,6 +3,7 @@ const PrivateSong = require('../models/privateMusic');
 const fs = require('fs');
 const imagePath = './assets/img/songs/';
 const audioPath = './assets/music/';
+const userImgPath = './assets/img/users/';
 
 let file = {  
     
@@ -114,6 +115,25 @@ let file = {
             }
             next();
         });
+    },
+    imageUpdate: function (req, res, next) {
+    
+        if(!req.files || Object.keys(req.files).length === 0) {
+            return res.send({
+                statusCode: 400,
+                ok: false,
+                message: 'Ningún archivo fue seleccionado/enviado'
+            });
+        } 
+            
+        let currImg = req.body.user.image
+           
+        if (currImg) {
+            trashOldFile(currImg,userImgPath)
+            req.body.image = randomizeName(req.files.image.name);
+        }
+        
+        next()
     }
 }
 

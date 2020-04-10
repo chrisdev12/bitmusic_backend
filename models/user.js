@@ -41,7 +41,7 @@ let user = new Schema({
     },
     image: {
         type: String,
-        required:  false
+        default: '404.png'
     },
     phone: {
         type: Number,
