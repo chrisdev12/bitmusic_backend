@@ -141,7 +141,7 @@ let music = {
     },
     findById: function (req, res) {
         
-        let id = req.body.songId
+        let id = req.params.songId
         Song.findById(id, (err, songFound) => {
             if (err || !songFound) {
                 return res.status(400).send({

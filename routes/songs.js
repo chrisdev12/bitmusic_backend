@@ -15,10 +15,10 @@ const fileValidate = require('../middlewares/fileValidation');
 
 app.post('/create',[token.validation, token.adminValidation, fileUpload(), fileValidate.new], music.create);
 app.put('/update/:songId', [token.validation, token.adminValidation, fileUpload(), fileValidate.update], music.update);
-app.get('/',token.validation, music.getSongs);
+app.get('/', token.validation, music.getSongs);
+app.get('/typehead',token.validation, music.typeHead);
 app.get('/:songId', token.validation, music.findById);
 app.get('/name',token.validation, music.findByName);
-app.get('/typehead',token.validation, music.typeHead);
 app.get('/:page?',token.validation, music.getSongsBypaginate);
 app.get('/audio/:file',token.validation, music.getAudioFile);
 app.get('/image/:image',token.validation, music.getImageFile);
