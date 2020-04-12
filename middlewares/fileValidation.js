@@ -10,7 +10,9 @@ let file = {
     new: function (req, res, next) {
         
         //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
-        req.body = req.body || JSON.parse(req.body.body)    
+        if (req.body.body) {
+            req.body = JSON.parse(req.body.body);
+        } 
         
         /**
         * fileUpload() es el primer middleware, nos devuelve los archivos en el req.file y nos devuelve el body en req.body
@@ -54,7 +56,9 @@ let file = {
         
         //Validar si el body viene por el req.body(postman) o req.body.body(Angular) 
         try {
-            req.body = req.body || JSON.parse(req.body.body)
+            if (req.body.body) {
+                req.body = JSON.parse(req.body.body);
+            } 
         
             if (req.files) {
             
